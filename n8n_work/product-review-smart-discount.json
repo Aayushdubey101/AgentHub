@@ -1,0 +1,373 @@
+{
+  "name": "Product Review -> Smart Discount -> Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Quick Setup (2 Minutes)\n1. Open `Save Review to Google Sheets`\n2. Add your Google Sheets credential\n3. Select your Spreadsheet + Sheet\n4. Activate workflow and use the Form URL\n\nColumns expected in sheet:\n`Email`, `Name`, `Product_category`, `Review`, `Give_discount`"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -900,
+        -300
+      ],
+      "typeVersion": 1,
+      "id": "68419fbb-b255-4378-ac0-b74037e3f0e6",
+      "name": "Setup Guide"
+    },
+    {
+      "parameters": {
+        "content": "## Step 1: Collect Review\nThis form collects customer review data with required fields for clean reporting."
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -520,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "7b6f07c2-7166-4b4f-b77f-fb2cf1fe2f5e",
+      "name": "Note - Collect"
+    },
+    {
+      "parameters": {
+        "content": "## Step 2: Decision Logic\nIf review is `Positive` -> discount `YES`\nElse -> discount `NO`"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -184,
+        -200
+      ],
+      "typeVersion": 1,
+      "id": "5d6f9553-0379-4fa9-a7b8-4eafcc2ef6b9",
+      "name": "Note - Logic"
+    },
+    {
+      "parameters": {
+        "content": "## Step 3: Save Data\nEach form submission is appended to Google Sheets with auto discount flag."
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        432,
+        -120
+      ],
+      "typeVersion": 1,
+      "id": "fb5c760e-0f52-4f08-8ce0-4e4b9f4e0090",
+      "name": "Note - Output"
+    },
+    {
+      "parameters": {
+        "formTitle": "Product Review",
+        "formDescription": "Share your product feedback. Positive reviews are marked for discount eligibility, and all responses are saved to Google Sheets.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Product Category",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Beauty Products"
+                  },
+                  {
+                    "option": "Home Appliances"
+                  },
+                  {
+                    "option": "Electronics & Gadgets"
+                  },
+                  {
+                    "option": "Health & Wellness"
+                  },
+                  {
+                    "option": "Sports & Fitness Equipment"
+                  },
+                  {
+                    "option": "Fashion & Clothing"
+                  },
+                  {
+                    "option": "Books & Stationery"
+                  },
+                  {
+                    "option": "Food & Beverages"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Review",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Positive"
+                  },
+                  {
+                    "option": "Negative"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -384,
+        64
+      ],
+      "id": "5b25e999-af68-435c-bf28-4af89fe57987",
+      "name": "Collect Product Review",
+      "webhookId": ""
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "808d17de-23c8-4ef5-8437-f78c8c2e1586",
+              "leftValue": "={{ $json.Review }}",
+              "rightValue": "Positive",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -160,
+        64
+      ],
+      "id": "9523f9e7-04bf-433d-bc66-0e11c0c25187",
+      "name": "Is Review Positive?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e8d7cefa-0abf-4365-9734-3a5f2f751534",
+              "name": "Give_Discount",
+              "value": "YES",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        144,
+        -32
+      ],
+      "id": "4f733ba3-9d1d-4a84-bde9-98dd8ab516a1",
+      "name": "Set Discount = YES"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "13dd5a6f-395b-4de6-b253-ae03c409ec1a",
+              "name": "Give_Discount",
+              "value": "NO",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        160
+      ],
+      "id": "72d91f39-0321-4a93-b6e8-753e51095064",
+      "name": "Set Discount = NO"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{ $('Collect Product Review').item.json.Email }}",
+            "Name": "={{ $('Collect Product Review').item.json.Name }}",
+            "Product_category": "={{ $('Collect Product Review').item.json['Product Category'] }}",
+            "Review": "={{ $('Collect Product Review').item.json.Review }}",
+            "Give_discount": "={{ $json.Give_Discount }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Product_category",
+              "displayName": "Product_category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Review",
+              "displayName": "Review",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Give_discount",
+              "displayName": "Give_discount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        496,
+        80
+      ],
+      "id": "fa4b1c6a-8121-4b8d-8e01-c2d55210816c",
+      "name": "Save Review to Google Sheets",
+      "credentials": {}
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Collect Product Review": {
+      "main": [
+        [
+          {
+            "node": "Is Review Positive?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Review Positive?": {
+      "main": [
+        [
+          {
+            "node": "Set Discount = YES",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Discount = NO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Discount = YES": {
+      "main": [
+        [
+          {
+            "node": "Save Review to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Discount = NO": {
+      "main": [
+        [
+          {
+            "node": "Save Review to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ec1edeff-3acb-471c-9b7f-d35024944514",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": ""
+  },
+  "id": "SZhSDIgVmaIVDvxX",
+  "tags": []
+}
