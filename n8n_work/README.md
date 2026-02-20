@@ -12,6 +12,10 @@ Each workflow is exportable as a `.json` file and can be directly imported into 
 
 **File:** `product-review-smart-discount.json`
 
+### 2️⃣ AI GitHub Parallel Reviewer
+
+**File:** `github-codespace-working-automation.json`
+
 ---
 
 ## 🛒 Product Review Smart Discount Agent
@@ -119,10 +123,99 @@ If you want to add a new workflow:
 
 ---
 
-## 🤖 Part of AgentHub
+## 🤖 AI GitHub Parallel Reviewer
 
-This directory is part of the larger **AgentHub** project focused on building production-grade AI agents and intelligent automation systems.
+A high-performance parallel code review and documentation agent that automatically analyzes codebases, adds professional inline comments, and generates a structured project map.
 
 ---
 
-Built with ⚡ using n8n and modern AI tooling.
+## 🎯 Problem It Solves
+
+- Codebases often lack consistent documentation.
+- Manual code reviews for large projects are time-consuming.
+- Mapping out project structure for new developers is tedious.
+
+---
+
+## 🧠 How It Works
+
+1. **Webhook Trigger:** Receives project files via a secure `POST` request.
+2. **Parallel Processing:** Splits files and processes them concurrently using specialized AI agents:
+    - **Commenter Agent:** Adds professional inline comments to the code.
+    - **Structure Agent:** Generates architectural summaries for each file.
+3. **Merging & Aggregation:** Recombines the outputs for a unified view.
+4. **Final Compilation:** A compiler agent builds a unified `project-structure.md` and packages the commented files.
+5. **JSON Response:** Returns the structured documentation and commented code back to the requester.
+
+---
+
+## ✨ Features
+
+- ✅ Parallel AI Agent Execution
+- ✅ Automated Inline Commenting
+- ✅ Dynamic Project Structure Generation
+- ✅ Scalable file processing
+- ✅ Production-ready architecture
+
+---
+
+## 🛠 Setup & Requirements
+
+1. **n8n Instance:** Local or cloud.
+2. **OpenAI Credentials:** Required for AI agents (`GPT-4o-mini` recommended).
+3. **Deployment:**
+    - Import `github-codespace-working-automation.json`.
+    - Configure your own OpenAI credentials in the model nodes.
+    - Activate the workflow and copy the **Production Webhook URL**.
+
+---
+
+## 🚀 How to Run
+
+Use a script like the one below (also provided in the workflow sticky notes) to securely transmit your codebase to n8n:
+
+```python
+import os
+import json
+import requests
+
+# Set your production webhook URL as an environment variable
+# export N8N_WEBHOOK_URL="https://your-n8n-domain/webhook/code-review"
+WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL")
+
+if not WEBHOOK_URL:
+    raise ValueError("Please set N8N_WEBHOOK_URL environment variable.")
+
+project_files = []
+
+for root, dirs, files in os.walk("."):
+    if ".git" in root or "__pycache__" in root:
+        continue
+
+    for file in files:
+        file_path = os.path.join(root, file)
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                project_files.append({
+                    "file_name": file_path,
+                    "content": f.read()
+                })
+        except:
+            pass
+
+payload = {
+    "project": os.path.basename(os.getcwd()),
+    "files": project_files
+}
+
+print(f"Sending {len(project_files)} files for AI review...")
+response = requests.post(WEBHOOK_URL, json=payload, timeout=120)
+
+print("Status:", response.status_code)
+# The response contains 'project_structure_md' and 'commented_files'
+```
+
+---
+
+## 🏗 Architecture Philosophy
+ ⚡ using n8n and modern AI tooling.

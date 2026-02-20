@@ -1,0 +1,415 @@
+{
+  "name": "Github-Codespace-Working-Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "code-review",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c67359d4-72da-4c75-9bc5-266b64b14288",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        448
+      ],
+      "webhookId": "4d01092d-5d1b-48f7-b4cb-de842470bc30"
+    },
+    {
+      "parameters": {
+        "include": "selected",
+        "includeFields": "body.files",
+        "options": {}
+      },
+      "id": "3d110116-c236-4a12-a066-5f9413c6cbb7",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        16,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "files",
+        "include": "selectedOtherFields",
+        "fieldsToInclude": "file_name,content",
+        "options": {
+          "includeBinary": false
+        }
+      },
+      "id": "6e1bcd31-3cdc-431f-ae7d-031226529ac6",
+      "name": "Split Files",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        240,
+        448
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a senior software engineer specializing in code documentation.\n\nYour task is to add professional inline comments to the following file.\n\nRules:\n- Do NOT change any logic or functionality.\n- Only insert meaningful inline comments explaining what the code does.\n- Keep comments concise and professional.\n- For non-code files (like .md), return them as-is with a note.\n\nFile Name: {{ $json.file_name }}\n\nFile Content:\n```\n{{ $json.content }}\n```\n\nReturn ONLY a raw JSON object (no markdown, no backticks, no explanation):\n{\n  \"file_name\": \"<file name>\",\n  \"commented_content\": \"<full file content with inline comments added>\"\n}",
+        "options": {}
+      },
+      "id": "38e878df-3fbb-4b7f-8a43-19e3e6201b1a",
+      "name": "AI Agent - Commenter",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        464,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a senior software architect responsible for maintaining project documentation.\n\nYour task is to analyze the following file and return a structured entry for a project-structure.md file.\n\nFile Name: {{ $json.file_name }}\n\nFile Content:\n```\n{{ $json.content }}\n```\n\nReturn ONLY a raw JSON object (no markdown, no backticks, no explanation):\n{\n  \"file_name\": \"<file name>\",\n  \"structure_entry\": \"<a markdown section describing this file purpose, tech used, and key components — 3 to 6 bullet points>\"\n}",
+        "options": {}
+      },
+      "id": "9bfb2e55-8c40-42fa-9bb0-5df4afd76b0d",
+      "name": "AI Agent - Structure",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        464,
+        648
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        536,
+        368
+      ],
+      "id": "0ca3adba-f376-4758-81df-8ac45b7eb157",
+      "name": "OpenAI - Commenter Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        536,
+        872
+      ],
+      "id": "6700a00b-3271-4f0e-ba35-f5cb06e392fc",
+      "name": "OpenAI - Structure Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "oyr06hvWDMQs8s0b",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "output",
+              "field2": "output"
+            }
+          ]
+        },
+        "joinMode": "keepNonMatches",
+        "options": {}
+      },
+      "id": "cf4a607d-06c7-48f1-aa9f-117ab7a8fdf7",
+      "name": "Merge Per File",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        816,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "86dd349a-9753-4ab4-a8b6-6eda25098296",
+      "name": "Aggregate All Files",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a senior software architect.\n\nHere is the collected data from all project files:\n{{ JSON.stringify($json.data) }}\n\nYour task:\n1. Compile a complete project-structure.md by combining all structure_entry fields.\n2. Collect all commented_files.\n\nReturn ONLY a raw JSON object (no markdown, no backticks, no explanation):\n{\n  \"project_structure_md\": \"<full markdown content for project-structure.md>\",\n  \"commented_files\": [\n    {\n      \"file_name\": \"<file name>\",\n      \"commented_content\": \"<commented file content>\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "3dc7ce55-d6fd-423c-8457-5b1f96ddbb1b",
+      "name": "AI Agent - Final Compiler",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1264,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1336,
+        672
+      ],
+      "id": "5af96776-4a2e-4211-a444-4c94b832802a",
+      "name": "OpenAI - Compiler Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "oyr06hvWDMQs8s0b",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "id": "54695bf4-5a8b-48d9-aebe-2bf9d5220efd",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1616,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔐 STEP 1 – OpenAI Credential Setup\n\n1. Go to Credentials → New\n2. Select \"OpenAI API\"\n3. Paste your OpenAI API key\n4. Save\n5. Open ALL OpenAI model nodes in this workflow\n6. Assign your credential to each model\n\n⚠️ Do NOT activate workflow before setting credentials.\n\n\n────────────────────────────\n\n## 🚀 STEP 2 – Activate Workflow\n\nClick \"Active\" in the top-right corner.\n\n\n────────────────────────────\n\n## 🌐 STEP 3 – Copy Production Webhook\n\n1. Click the Webhook node\n2. Copy the **Production URL**\n   (NOT webhook-test)\n\nExample:\nhttps://your-n8n-domain/webhook/code-review\n\nYou will use this in environment setup.",
+        "height": 752,
+        "width": 880
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2096,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "c8b090a7-0b9b-4e2d-aae8-94b0bbff72fc",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 🐍 STEP 4 – Create send.py in Project Root\n\nCreate a file named:\n\nsend.py\n\n\nPaste this secure version:\n\n--------------------------------------------------\n\nimport os\nimport json\nimport requests\n\nWEBHOOK_URL = os.getenv(\"N8N_WEBHOOK_URL\")\n\nif not WEBHOOK_URL:\n    raise ValueError(\"Please set N8N_WEBHOOK_URL environment variable.\")\n\nproject_files = []\n\nfor root, dirs, files in os.walk(\".\"):\n    if \".git\" in root:\n        continue\n\n    for file in files:\n        if file == \"send.py\":\n            continue\n\n        file_path = os.path.join(root, file)\n\n        try:\n            with open(file_path, \"r\", encoding=\"utf-8\") as f:\n                content = f.read()\n\n            project_files.append({\n                \"file_name\": file_path,\n                \"content\": content\n            })\n\n        except:\n            pass\n\npayload = {\n    \"project\": os.path.basename(os.getcwd()),\n    \"files\": project_files\n}\n\nprint(f\"Sending {len(project_files)} files for AI review...\")\n\nresponse = requests.post(WEBHOOK_URL, json=payload, timeout=120)\n\nprint(\"Status:\", response.status_code)\nprint(\"Response:\", response.text)\n\n--------------------------------------------------\n\n⚠️ IMPORTANT:\n• Do NOT hardcode webhook URL\n• Always use environment variable",
+        "height": 1840,
+        "width": 864
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2096,
+        752
+      ],
+      "typeVersion": 1,
+      "id": "7eab8007-ccf5-4e40-95b3-c66601a5136d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ STEP 5 – Set Environment Variable\n\nMac / Linux:\n\nexport N8N_WEBHOOK_URL=\"PASTE_PRODUCTION_WEBHOOK_HERE\"\n\n\nWindows (PowerShell):\n\nsetx N8N_WEBHOOK_URL \"PASTE_PRODUCTION_WEBHOOK_HERE\"\n\nRestart terminal after setting.\n\n\n────────────────────────────\n\n## 📦 STEP 6 – Install Dependency\n\npip install requests\n\n\n────────────────────────────\n\n## ▶ STEP 7 – Run\n\npython send.py\n\n\n────────────────────────────\n\n🎉 RESULT\n\n• project-structure.md will be generated\n• AI commented files will be returned\n• Workflow runs fully automated\n\n\n────────────────────────────",
+        "height": 976,
+        "width": 880
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1216,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "74280ef2-1b9f-4690-b1ae-9f46564a64c6",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Files": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Commenter",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Structure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Commenter": {
+      "main": [
+        [
+          {
+            "node": "Merge Per File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Structure": {
+      "main": [
+        [
+          {
+            "node": "Merge Per File",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Per File": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Files": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Final Compiler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Final Compiler": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Commenter Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Commenter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Structure Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Structure",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Compiler Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Final Compiler",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "62f1cac8-ba29-4f49-8183-5756360dd6d4",
+  "meta": {
+    "instanceId": "afe800687e64a14600417effda0309c68cc65a0fd2305a1fbe85d972c6e4f2e3"
+  },
+  "id": "cuwuwHhDwun9sd6k",
+  "tags": []
+}
